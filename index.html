@@ -4,7 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AR.js Virtual Painting</title>
- <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.min.js"></script>
+  <!-- Correct Three.js Version -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r132/three.min.js"></script>
+  <!-- AR.js -->
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.min.js"></script>
   <style>
     body, html {
       margin: 0;
@@ -15,7 +18,7 @@
   </style>
 </head>
 <body>
-test
+
 <a-scene
   embedded
   arjs="sourceType: webcam; debugUIEnabled: false;">
@@ -37,7 +40,6 @@ test
 <script>
   // Adjust painting dimensions dynamically
   const painting = document.getElementById('painting');
-  alert(painting);
 
   // Simulate wall detection (replace this logic with advanced AR plane tracking if needed)
   document.addEventListener('click', (event) => {
