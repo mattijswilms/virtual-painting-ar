@@ -3,117 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebXR Plane Detection for Virtual Painting</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <title>AR.js Virtual Painting</title>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.min.js"></script>
+  <style>
+    body, html {
+      margin: 0;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
 </head>
-<body style="margin: 0; overflow: hidden;">
+<body>
+
+<a-scene
+  embedded
+  arjs="sourceType: webcam; debugUIEnabled: false;">
+  
+  <!-- Camera -->
+  <a-camera position="0 0 0" look-controls enabled="true"></a-camera>
+
+  <!-- Virtual Painting -->
+  <a-entity
+    id="painting"
+    geometry="primitive: plane; height: 1; width: 1;"
+    material="shader: flat; src: https://via.placeholder.com/400"
+    position="0 0 -2"
+    rotation="0 0 0">
+  </a-entity>
+
+</a-scene>
 
 <script>
-  if (navigator.xr) {
-    navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
-      if (supported) {
-        initXR();
-      } else {
-        alert('WebXR AR is not supported on your device.');
-      }
-    });
-  } else {
-    alert('WebXR is not supported on this browser.');
-  }
+  // Adjust painting dimensions dynamically
+  const painting = document.getElementById('painting');
 
-  async function initXR() {
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.xr.enabled = true;
-    document.body.appendChild(renderer.domElement);
-
-    const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-    scene.add(light);
-
-    const textureLoader = new THREE.TextureLoader();
-    const imageTexture = textureLoader.load('https://via.placeholder.com/400'); // Replace with your painting image URL
-
-    const imageMaterial = new THREE.MeshBasicMaterial({ map: imageTexture });
-    const imageGeometry = new THREE.PlaneGeometry(1, 1); // 1x1 meter plane for the painting
-    const painting = new THREE.Mesh(imageGeometry, imageMaterial);
-
-    // Initialize WebXR Session
-    const session = await navigator.xr.requestSession('immersive-ar', {
-      requiredFeatures: ['hit-test', 'plane-detection']
-    });
-    renderer.xr.setSession(session);
-
-    const referenceSpace = await session.requestReferenceSpace('local');
-    const viewerSpace = await session.requestReferenceSpace('viewer');
-    const hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
-
-    // Plane Detection - Keep track of detected planes
-    const planes = new Map();
-
-    session.addEventListener('select', () => {
-      // When user taps the screen, place the painting on the closest detected plane
-      const frame = renderer.xr.getFrame();
-      const hitTestResults = frame.getHitTestResults(hitTestSource);
-
-      if (hitTestResults.length > 0) {
-        const hit = hitTestResults[0];
-        const pose = hit.getPose(referenceSpace);
-
-        // Position and rotate the painting on the detected plane
-        painting.position.set(
-          pose.transform.position.x,
-          pose.transform.position.y,
-          pose.transform.position.z
-        );
-        painting.quaternion.set(
-          pose.transform.orientation.x,
-          pose.transform.orientation.y,
-          pose.transform.orientation.z,
-          pose.transform.orientation.w
-        );
-
-        // Ensure the painting is added to the scene
-        if (!scene.children.includes(painting)) {
-          scene.add(painting);
-        }
-      }
-    });
-
-    session.addEventListener('planesdetected', (event) => {
-      // Update detected planes
-      event.planes.forEach((plane) => {
-        if (!planes.has(plane.planeId)) {
-          const planeMesh = new THREE.Mesh(
-            new THREE.PlaneGeometry(1, 1),
-            new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide, opacity: 0.3, transparent: true })
-          );
-          scene.add(planeMesh);
-          planes.set(plane.planeId, planeMesh);
-        }
-
-        // Update plane mesh positions
-        const planeMesh = planes.get(plane.planeId);
-        const pose = plane.planePose;
-        planeMesh.position.set(pose.position.x, pose.position.y, pose.position.z);
-        planeMesh.quaternion.set(
-          pose.orientation.x,
-          pose.orientation.y,
-          pose.orientation.z,
-          pose.orientation.w
-        );
-
-        // Adjust plane size based on its boundaries
-        const { width, height } = plane.planeBounds;
-        planeMesh.scale.set(width, height, 1);
-      });
-    });
-
-    renderer.setAnimationLoop(() => {
-      renderer.render(scene, camera);
-    });
-  }
+  // Simulate wall detection (replace this logic with advanced AR plane tracking if needed)
+  document.addEventListener('click', (event) => {
+    // Example: Move painting closer to where the user tapped
+    const x = Math.random() * 2 - 1; // Random X within range
+    const y = Math.random() * 2 - 1; // Random Y within range
+    painting.setAttribute('position', { x, y, z: -1.5 });
+  });
 </script>
 
 </body>
